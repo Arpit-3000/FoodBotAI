@@ -24,6 +24,13 @@ exports.updateLead = async (id, data) => {
 };
 
 exports.deleteLead = async (id) => {
+  if (!id) throw new Error('Lead ID is required for deletion');
+
   const res = await axios.delete(`${BASE}/api/leads/${id}`);
-  return { status: res.status, data: res.data };
+  
+  if (res.status !== 200 && res.status !== 204) {
+    throw new Error('Failed to delete lead from backend');
+  }
+
+  return { status: res.status, data: res.data || { message: 'Lead deleted' } };
 };

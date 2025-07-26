@@ -54,8 +54,9 @@ exports.updateLead = async (req, res) => {
 };
 
 exports.deleteLead = async (req, res) => {
+  const id = req.params.id;
   try {
-    await leads.doc(req.params.id).delete();
+    await leads.doc(id).delete();
     res.json({ message: 'Lead deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });

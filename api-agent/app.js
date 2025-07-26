@@ -15,11 +15,12 @@ app.use(bodyParser.json());
 app.post('/api/ai-agent/parse-and-create', async (req, res) => {
   const { conversation } = req.body;
   if (!conversation) return res.status(400).json({ error: 'Conversation required' });
-
-  const prompt = `
+  
+const prompt = `
 You're an AI CRM assistant. Parse the following conversation and return a valid JSON command.
 
 Respond ONLY in valid JSON like:
+
 {
   "command": "createLead",
   "data": {
@@ -37,6 +38,22 @@ Respond ONLY in valid JSON like:
 
 Or:
 { "command": "getLeads" }
+
+Or:
+{ "command": "getLeadById", "id": "123" }
+
+Or:
+{
+  "command": "updateLeadById",
+  "id": "123",
+  "data": {
+    "status": "Contacted",
+    "notes": "Follow-up done."
+  }
+}
+
+Or:
+{ "command": "deleteLeadById", "id": "123" }
 
 Conversation:
 ${conversation}

@@ -6,16 +6,24 @@ async function commandRouter(commandObj) {
   switch (command) {
     case 'createLead':
       return await leadService.createLead(data);
+
     case 'getLeads':
       return await leadService.getLeads();
+
     case 'getLeadById':
+      if (!id) throw new Error("ID is required for getLeadById");
       return await leadService.getLeadById(id);
-    case 'updateLead':
+
+    case 'updateLeadById':
+      if (!id || !data) throw new Error("ID and data are required for updateLeadById");
       return await leadService.updateLead(id, data);
-    case 'deleteLead':
+
+    case 'deleteLeadById':
+      if (!id) throw new Error("ID is required for deleteLeadById");
       return await leadService.deleteLead(id);
+
     default:
-      throw new Error('Unsupported command');
+      throw new Error("Unknown command");
   }
 }
 
