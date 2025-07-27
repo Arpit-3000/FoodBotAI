@@ -2,20 +2,19 @@ const admin = require('firebase-admin');
 const path = require('path');
 const fs = require('fs');
 
+// Updated path to look inside backend-api folder
+const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
 
-const serviceAccountPath = process.env.SERVICE_ACCOUNT_PATH;
+console.log('Looking for service account at:', serviceAccountPath);
 
-if (!serviceAccountPath) {
-  throw new Error('SERVICE_ACCOUNT_PATH environment variable is not set');
+if (!fs.existsSync(serviceAccountPath)) {
+  console.error(`❌ Error: serviceAccountKey.json not found at: ${serviceAccountPath}`);
+  console.log('Current working directory:', process.cwd());
+  console.log('Directory contents:', fs.readdirSync(path.dirname(serviceAccountPath)));
+  process.exit(1);
 }
 
-const absolutePath = path.resolve(process.cwd(), serviceAccountPath);
-
-if (!fs.existsSync(absolutePath)) {
-  throw new Error(`Service account file not found at: ${absolutePath}`);
-}
-
-const serviceAccount = require(absolutePath);
+const serviceAccount = require(serviceAccountPath);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
