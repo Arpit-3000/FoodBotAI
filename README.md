@@ -1,4 +1,4 @@
-# Backend-AI with Speech Prompt Integration 🎙️🤖
+# FoodBot AI Agent 🎙️🤖
 
 This project is a semi-CRM backend system for managing restaurant leads, enhanced with AI agent capabilities and **speech-to-text input** support for interacting via voice commands.
 
@@ -16,13 +16,44 @@ This project is a semi-CRM backend system for managing restaurant leads, enhance
 ---
 
 ## 📁 Folder Structure
-FoodBotAI/ ├── client/ 
-# Frontend React application 
-├── backend-api/ 
-# Main backend service (Express.js) 
-├── api-agent/ # AI agent service 
-├── mcp-server/ 
-# Message Control Protocol
+FoodBotAI/
+├── client/                      # Frontend React Application
+│   ├── public/                 # Static files
+│   │   ├── index.html
+│   │   └── assets/             # Images, fonts, etc.
+│   ├── src/
+│   │   ├── components/         # Reusable UI components
+│   │   │   ├── chatBot/          # Chat interface components
+│   │   │   └── leadsForm/         # Lead management components
+│   │   ├── App.jsx            # Main App component
+│   │   └── main.jsx           # Entry point
+│   ├── .env                   # Frontend environment variables
+│   ├── package.json
+│   └── vite.config.js
+│
+├── backend-api/                # Main Backend Service
+│   ├── config/                # Configuration files
+│   ├── controllers/           # Route controllers
+│   ├── middleware/            # Express middleware
+│   ├── models/                # Database models
+│   ├── routes/                # API routes
+│   ├── services/              # Business logic
+│   ├── .env                  # Environment variables
+│   └── app.js             # Server entry point
+│
+├── api-agent/                 # AI Agent Service
+│   ├── geminiClient.js/                
+│   ├── .env
+│   └── app.js
+│
+├── mcp-server/               # Message Control Protocol Server
+│   ├── commands/            # Command handlers
+│   ├── middleware/          # Request middleware
+│   ├── services/               # services 
+│   ├── .env
+│   └── app.js
+│
+└── package.json             # Root package.json for shared scripts
 
 ### 🎙️ Speech Prompt Flow
 
