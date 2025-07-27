@@ -44,11 +44,11 @@ const App = () => {
     setResponse({ loading: true });
     
     try {
-      const res = await fetch('http://localhost:7000/api/ai-agent/parse-and-create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversation: message }),
-      });
+        const res = await fetch(`${import.meta.env.VITE_API_URL}api/ai-agent/parse-and-create`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ conversation: message }),
+});
       
       const data = await res.json();
       setResponse(data);
