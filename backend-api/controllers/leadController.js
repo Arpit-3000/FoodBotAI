@@ -17,7 +17,7 @@ exports.createLead = async (req, res) => {
       notes: req.body.notes || ""
     };
     await leads.doc(id).set(leadData);
-    res.status(201).json({ message: 'Lead created', id, data: leadData });
+    res.status(201).json({ message: 'Lead created successfully', id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -47,7 +47,7 @@ exports.getLeadById = async (req, res) => {
 exports.updateLead = async (req, res) => {
   try {
     await leads.doc(req.params.id).update(req.body);
-    res.json({ message: 'Lead updated' });
+    res.json({ message: 'Lead updated successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -55,10 +55,38 @@ exports.updateLead = async (req, res) => {
 
 exports.deleteLead = async (req, res) => {
   const id = req.params.id;
+  
+  // Check if ID is provided
+  if (!id) {
+    return res.status(400).json({ 
+      error: 'Lead ID is required',
+      message: 'Please provide a lead ID to delete. Example: DELETE /api/leads/123',
+      usage: 'DELETE /api/leads/:id'
+    });
+  }
+
   try {
+    // First check if the document exists
+    const doc = await leads.doc(id).get();
+    if (!doc.exists) {
+      return res.status(404).json({ 
+        error: 'Lead not found',
+        message: `No lead found with ID: ${id}`
+      });
+    }
+    
+    // If it exists, delete it
     await leads.doc(id).delete();
-    res.json({ message: 'Lead deleted' });
+    res.json({ 
+      success: true,
+      message: `Lead with ID ${id} has been deleted successfully`,
+      deletedId: id
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error deleting lead:', err);
+    res.status(500).json({ 
+      error: 'Failed to delete lead',
+      message: err.message 
+    });
   }
 };

@@ -14,6 +14,28 @@ export default function LeadForm({ onResponse }) {
     }
   }, [conversation]);
 
+  const formatErrorResponse = (errorData) => {
+    if (!errorData) return 'An error occurred. Please try again.';
+    
+    let errorMessage = 'Validation Error:\n\n';
+    
+    if (errorData.missingFields) {
+      errorMessage += '• ' + errorData.missingFields.join('\n• ') + '\n\n';
+    }
+    
+    if (errorData.requiredFields) {
+      errorMessage += 'Required Fields:\n';
+      errorMessage += JSON.stringify(errorData.requiredFields, null, 2) + '\n\n';
+    }
+    
+    if (errorData.example) {
+      errorMessage += 'Example:\n';
+      errorMessage += JSON.stringify(errorData.example, null, 2);
+    }
+    
+    return errorMessage;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!conversation.trim()) return;
@@ -22,11 +44,42 @@ export default function LeadForm({ onResponse }) {
     setError('');
 
     try {
-      const res = await axios.post("http://localhost:7000/api/ai-agent/parse-and-create", { conversation });
-      onResponse(JSON.stringify(res.data, null, 2) );
+      const res = await axios.post("http://localhost:7000/api/ai-agent/parse-and-create", { 
+        conversation 
+      }, {
+        validateStatus: (status) => true // Don't throw for any status code
+      });
+
+      console.log('API Response:', res.data);
+      
+      // If we got a successful response (2xx)
+      if (res.status >= 200 && res.status < 300) {
+        onResponse(res.data);
+      } 
+      // If we got a client error (4xx)
+      else if (res.status >= 400 && res.status < 500) {
+        setError(res.data.error || 'Validation error');
+        // Format the error response in a way the ChatBox can understand
+        onResponse({
+          error: res.data.error || 'Validation error',
+          missingFields: res.data.missingFields || [],
+          example: res.data.example
+        });
+      }
+      // Server error (5xx) or other
+      else {
+        throw new Error(res.data?.error || 'Server error');
+      }
     } catch (err) {
-      onResponse('');
-      setError(err.response?.data?.error || "Something went wrong. Please try again.");
+      console.error('API Error:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Something went wrong';
+      setError(errorMessage);
+      
+      // Send error to ChatBox in a consistent format
+      onResponse({
+        error: errorMessage,
+        missingFields: err.response?.data?.missingFields || []
+      });
     } finally {
       setIsLoading(false);
     }
@@ -53,10 +106,7 @@ export default function LeadForm({ onResponse }) {
         </div>
         
         {error && (
-          <div className="flex items-center p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
+          <div className="text-red-500 text-sm p-3 bg-red-50 rounded-lg">
             {error}
           </div>
         )}
@@ -65,27 +115,22 @@ export default function LeadForm({ onResponse }) {
           <button
             type="submit"
             disabled={isLoading || !conversation.trim()}
-            className={`px-6 py-3 rounded-xl font-medium text-white transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-              isLoading || !conversation.trim()
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg'
+            className={`inline-flex items-center px-6 py-2.5 rounded-xl text-white font-medium shadow-sm transition-all duration-200 ${
+              isLoading || !conversation.trim() 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transform hover:-translate-y-0.5'
             }`}
           >
             {isLoading ? (
-              <div className="flex items-center">
+              <>
                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 Processing...
-              </div>
+              </>
             ) : (
-              <div className="flex items-center">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 12h16" />
-                </svg>
-                Analyze Conversation
-              </div>
+              'Generate Lead'
             )}
           </button>
         </div>

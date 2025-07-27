@@ -1,137 +1,333 @@
-import { useState, useEffect } from 'react';
-import LeadForm from './components/LeadForm';
+import { useState, useRef, useEffect } from 'react';
 import ChatBox from './components/ChatBox';
+import { FiGithub, FiLinkedin, FiTwitter, FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
 
 const App = () => {
-  const [response, setResponse] = useState('');
-  const [isVisible, setIsVisible] = useState(false);
+  const [response, setResponse] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const messagesEndRef = useRef(null);
+  
+  const toggleChat = () => {
+    const willShowChat = !showChat;
+    setShowChat(willShowChat);
+    
+    if (willShowChat) {
+      // Reset chat state when opening the chat
+      setResponse(null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+  
+  const startNewChat = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setResponse(null); // Clear any previous responses
+    setShowChat(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
+  // Handle scroll effect for header
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
     };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleNewMessage = async (message) => {
+    // Set loading state immediately
+    setResponse({ loading: true });
+    
+    try {
+      const res = await fetch('http://localhost:7000/api/ai-agent/parse-and-create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversation: message }),
+      });
+      
+      const data = await res.json();
+      setResponse(data);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setResponse({
+        error: error.message || 'Failed to send message',
+        timestamp: new Date().toISOString()
+      });
+    } finally {
+      // No need to set loading to false as it will be replaced by the actual response
+    }
+  };
+
+  const features = [
+    {
+      icon: '🤖',
+      title: 'AI-Powered',
+      description: 'Advanced AI understands and processes lead information intelligently.'
+    },
+    {
+      icon: '⚡',
+      title: 'Lightning Fast',
+      description: 'Process leads and get responses in real-time.'
+    },
+    {
+      icon: '🔒',
+      title: 'Secure',
+      description: 'Your data is encrypted and handled with the utmost security.'
+    },
+    {
+      icon: '🔄',
+      title: 'Seamless Integration',
+      description: 'Easily integrates with your existing workflow.'
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 p-4 md:p-8 transition-all duration-500 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        {[...Array(10)].map((_, i) => (
-          <div 
-            key={i}
-            className="absolute rounded-full bg-blue-100 opacity-20"
-            style={{
-              width: `${Math.random() * 400 + 100}px`,
-              height: `${Math.random() * 400 + 100}px`,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              transform: `translate(-50%, -50%) scale(${Math.random() * 0.5 + 0.5})`,
-              filter: 'blur(40px)'
-            }}
-          />
-        ))}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden -z-10">
+        <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-indigo-50/30"></div>
+        </div>
       </div>
 
-      {/* Main content */}
-      <div className={`max-w-6xl mx-auto relative z-10 transition-all duration-700 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-        {/* Logo and Title */}
-        <header className="text-center mb-12">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 shadow-lg transform transition-transform hover:scale-105 hover:rotate-3 mb-4">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-              </svg>
+      {/* Header */}
+      <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md shadow-sm' : 'bg-transparent'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex-shrink-0 flex items-center">
+              <div className="flex items-center">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold mr-2">FB</div>
+                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">FoodBOT</span>
+              </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-700">
-              FoodBOT AI
-            </h1>
-            <p className="text-lg text-gray-600 mt-2">Lead Generation Assistant</p>
+            <nav className="hidden md:flex space-x-8">
+              <a href="#features" className="text-gray-600 hover:text-blue-600 px-3 py-2 font-medium transition-colors">Features</a>
+              <a href="#how-it-works" className="text-gray-600 hover:text-blue-600 px-3 py-2 font-medium transition-colors">How It Works</a>
+              <a href="#contact" className="text-gray-600 hover:text-blue-600 px-3 py-2 font-medium transition-colors">Contact</a>
+            </nav>
+            <div className="flex items-center">
+              <button 
+                onClick={toggleChat}
+                className="hidden md:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+              >
+                {showChat ? 'Back to Home' : 'Get Started'}
+              </button>
+              <button className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="space-y-8 relative z-10">
-          {/* Hero Section */}
-          <div className="text-center mb-16">
-            <span className="inline-block mb-4 px-4 py-1 bg-blue-100 text-blue-600 text-sm font-medium rounded-full">
-              AI-Powered Lead Generation
-            </span>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Transform Conversations <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                Into Valuable Leads
-              </span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Automatically extract and analyze leads from your customer conversations with our cutting-edge AI technology.
-            </p>
-          </div>
-
-          {/* Main Form Section */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/20 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5" />
-            <div className="relative z-10">
-              <div className="p-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center">
-                    <span className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 text-blue-600 mr-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                      </svg>
-                    </span>
-                    Conversation Analysis
-                  </h2>
-                  <div className="flex space-x-2">
-                    <span className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
-                    <span className="w-3 h-3 rounded-full bg-yellow-400" />
-                    <span className="w-3 h-3 rounded-full bg-red-400" />
-                  </div>
+      {/* Main Content */}
+      <main>
+        {!showChat ? (
+          <>
+            {/* Hero Section */}
+            <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <div className="text-center">
+              <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                <span className="block">Transform Your Food Business</span>
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">With AI-Powered Lead Management</span>
+              </h1>
+              <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
+                Streamline your lead generation and customer interactions with our intelligent AI assistant designed specifically for the food industry.
+              </p>
+              <div className="mt-8 flex justify-center
+              ">
+                <div className="inline-flex rounded-md shadow">
+                  <button 
+                    onClick={startNewChat}
+                    className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 md:py-4 md:text-lg md:px-10 transition-all transform hover:-translate-y-0.5"
+                  >
+                    Start Chatting Now
+                  </button>
                 </div>
-                <LeadForm onResponse={setResponse} />
+                <div className="ml-3 inline-flex">
+                  <a href="#how-it-works" className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10 transition-colors">
+                    Learn More
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="mt-20 grid grid-cols-2 gap-8 md:grid-cols-4">
+              {[
+                { number: '10K+', label: 'Leads Processed' },
+                { number: '99.9%', label: 'Uptime' },
+                { number: '24/7', label: 'Support' },
+                { number: '5min', label: 'Average Response Time' }
+              ].map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-3xl font-bold text-gray-900">{stat.number}</div>
+                  <div className="mt-1 text-sm font-medium text-gray-500">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Features Section */}
+          <section id="features" className="py-20 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center">
+                <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                  Powerful Features
+                </h2>
+                <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                  Everything you need to manage your food business leads effectively
+                </p>
+              </div>
+
+              <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+                {features.map((feature, index) => (
+                  <div key={index} className="pt-6">
+                    <div className="flow-root bg-gray-50 rounded-lg px-6 pb-8 h-full">
+                      <div className="-mt-6">
+                        <div className="inline-flex items-center justify-center p-3 rounded-md shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-2xl w-12 h-12">
+                          {feature.icon}
+                        </div>
+                        <h3 className="mt-4 text-lg font-medium text-gray-900">{feature.title}</h3>
+                        <p className="mt-2 text-base text-gray-500">
+                          {feature.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* CTA Section */}
+          <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <h2 className="text-3xl font-extrabold mb-6">Ready to get started?</h2>
+              <p className="text-xl mb-8 max-w-3xl mx-auto">
+                Join thousands of businesses already using our AI assistant to streamline their lead generation process.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <button 
+                  onClick={toggleChat}
+                  className="px-8 py-3 bg-white text-blue-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  Start Chatting Now
+                </button>
+                <button className="px-8 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors">
+                  Contact Sales
+                </button>
+              </div>
+            </div>
+            </section>
+          </>
+        ) : (
+          <section id="chat" className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+              <ChatBox response={response} onNewMessage={handleNewMessage} />
+            </div>
+          </section>
+        )}
+      </main>
+
+      {/* Footer */}
+      {!showChat && (
+        <footer className="bg-gray-900 text-gray-300">
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
+          <div className="xl:grid xl:grid-cols-3 xl:gap-8">
+            <div className="space-y-4 xl:col-span-1">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold mr-2">FB</div>
+                <span className="text-white text-xl font-bold">FoodBOT</span>
+              </div>
+              <p className="text-gray-400 text-sm">
+                Empowering food businesses with AI-powered lead management solutions.
+              </p>
+              <div className="flex space-x-6 mt-4">
+                <a href="#" className="text-gray-400 hover:text-white">
+                  <span className="sr-only">GitHub</span>
+                  <FiGithub className="h-6 w-6" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white">
+                  <span className="sr-only">LinkedIn</span>
+                  <FiLinkedin className="h-6 w-6" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white">
+                  <span className="sr-only">Twitter</span>
+                  <FiTwitter className="h-6 w-6" />
+                </a>
+              </div>
+            </div>
+            <div className="mt-12 grid grid-cols-2 gap-8 xl:mt-0 xl:col-span-2">
+              <div className="md:grid md:grid-cols-2 md:gap-8">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-200 tracking-wider uppercase">Solutions</h3>
+                  <ul className="mt-4 space-y-4">
+                    {['Lead Management', 'Customer Support', 'Order Processing', 'Analytics'].map((item) => (
+                      <li key={item}>
+                        <a href="#" className="text-base text-gray-400 hover:text-white">
+                          {item}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-12 md:mt-0">
+                  <h3 className="text-sm font-semibold text-gray-200 tracking-wider uppercase">Support</h3>
+                  <ul className="mt-4 space-y-4">
+                    {['Documentation', 'Guides', 'API Status', 'Contact'].map((item) => (
+                      <li key={item}>
+                        <a href="#" className="text-base text-gray-400 hover:text-white">
+                          {item}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <div className="md:grid md:grid-cols-2 md:gap-8">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-200 tracking-wider uppercase">Company</h3>
+                  <ul className="mt-4 space-y-4">
+                    {['About', 'Blog', 'Careers', 'Press'].map((item) => (
+                      <li key={item}>
+                        <a href="#" className="text-base text-gray-400 hover:text-white">
+                          {item}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-12 md:mt-0">
+                  <h3 className="text-sm font-semibold text-gray-200 tracking-wider uppercase">Legal</h3>
+                  <ul className="mt-4 space-y-4">
+                    {['Privacy', 'Terms', 'Cookie Policy', 'GDPR'].map((item) => (
+                      <li key={item}>
+                        <a href="#" className="text-base text-gray-400 hover:text-white">
+                          {item}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Results Section */}
-          {response && (
-            <div className="transform transition-all duration-700 ease-in-out">
-              <ChatBox response={response} />
-            </div>
-          )}
-        </main>
-
-        {/* Footer */}
-        <footer className="mt-24 mb-12 text-center">
-          <div className="flex justify-center space-x-6 mb-6">
-            <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors">
-              <span className="sr-only">Twitter</span>
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-              </svg>
-            </a>
-            <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors">
-              <span className="sr-only">GitHub</span>
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
-              </svg>
-            </a>
-            <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors">
-              <span className="sr-only">LinkedIn</span>
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-              </svg>
-            </a>
+          <div className="mt-12 border-t border-gray-800 pt-8">
+            <p className="text-base text-gray-400 text-center">
+              &copy; {new Date().getFullYear()} FoodBOT AI. All rights reserved.
+            </p>
           </div>
-          <p className="text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} FoodBOT AI. All rights reserved.
-          </p>
-        </footer>
-      </div>
+        </div>
+      </footer>
+      )}
     </div>
   );
 };

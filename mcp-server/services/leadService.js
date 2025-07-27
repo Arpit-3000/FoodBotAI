@@ -9,8 +9,13 @@ exports.createLead = async (data) => {
 };
 
 exports.getLeads = async () => {
-  const res = await axios.get(`${BASE}/api/leads`);
-  return { status: res.status, data: res.data };
+  try {
+    const res = await axios.get(`${BASE}/api/leads`);
+    return { status: res.status, data: res.data };
+  } catch (error) {
+    console.error('Axios error:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.error || 'Failed to fetch leads');
+  }
 };
 
 exports.getLeadById = async (id) => {
