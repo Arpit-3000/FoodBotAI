@@ -1,63 +1,61 @@
-# FoodBot AI Agent 🎙️🤖
+# FoodBot AI Agent 🚀
 
-This project is a semi-CRM backend system for managing restaurant leads, enhanced with AI agent capabilities and **speech-to-text input** support for interacting via voice commands.
-
----
-
-## 🚀 Features
-
-- 🔧 **Command-Based Router**: Supports `createLead`, `getLeads`, `updateLead`, `deleteLead`, and `getLeadById`.
-- 🧠 **AI Agent Integration**: Easily pluggable AI-based logic for intelligent interactions.
-- 🎤 **Speech-to-Text Prompt Input**: Users can now speak their prompts, which are converted to text and processed as commands.
-- 📦 **Modular Code Structure**: Clean separation of concerns between command routing, lead services, and API interaction.
-- 📡 **Axios-Driven Backend Communication**: Smooth communication with backend API for lead management.
-- ✅ **.env Config Support**: Secure and configurable deployment with `.env` variables.
+FoodBotAI is a semi-CRM AI agent system designed to intelligently manage restaurant leads, communicate via command protocols, and support AI-powered prompt enhancements. It features a modular monorepo architecture with three main services:
+- `client/`: React frontend
+- `backend-api/`: Node.js backend for lead management
+- `api-agent/`: AI agent powered by Gemini
+- `mcp-server/`: Message Control Protocol (MCP) server
 
 ---
 
-## 📁 Folder Structure
+## ✨ Features
+
+- 🎯 **Lead Management System** – Add, list, and manage restaurant leads with proper source tracking.
+- 🤖 **AI Prompt Handling** – Gemini-integrated prompt system to generate contextual responses.
+- 🗣️ **Speech-to-Text Prompting** – Speak your prompts using microphone and get accurate AI replies via speech-to-text.
+- 🧠 **MCP Agent Server** – Lightweight command execution protocol (MCP) for backend automation and decision handling.
+- 🌐 **Modular Monorepo** – Structured project for seamless development across services.
+
+---
+
+## 🗂️ Project Structure
+
+```bash
 FoodBotAI/
 ├── client/                      # Frontend React Application
 │   ├── public/                 # Static files
-│   │   ├── index.html
 │   │   └── assets/             # Images, fonts, etc.
 │   ├── src/
 │   │   ├── components/         # Reusable UI components
-│   │   │   ├── chatBot/          # Chat interface components
-│   │   │   └── leadsForm/         # Lead management components
-│   │   ├── App.jsx            # Main App component
-│   │   └── main.jsx           # Entry point
-│   ├── .env                   # Frontend environment variables
+│   │   │   ├── chatBot/        # Chat interface components
+│   │   │   └── leadsForm/      # Lead management components
+│   │   ├── hooks/              # Custom hooks (e.g. for speech-to-text)
+│   │   ├── App.jsx             # Main App component
+│   │   └── main.jsx            # Entry point
+│   ├── .env                    # Frontend env variables
 │   ├── package.json
 │   └── vite.config.js
-│
+
 ├── backend-api/                # Main Backend Service
-│   ├── config/                # Configuration files
-│   ├── controllers/           # Route controllers
-│   ├── middleware/            # Express middleware
-│   ├── models/                # Database models
-│   ├── routes/                # API routes
-│   ├── services/              # Business logic
-│   ├── .env                  # Environment variables
-│   └── app.js             # Server entry point
-│
-├── api-agent/                 # AI Agent Service
-│   ├── geminiClient.js/                
+│   ├── config/                 # Configuration files
+│   ├── controllers/            # Route controllers (leads etc.)
+│   ├── middleware/             # Express middleware
+│   ├── models/                 # Firestore or DB models
+│   ├── routes/                 # REST API routes
+│   ├── services/               # Business logic
+│   ├── .env
+│   └── app.js                  # Express server entry
+
+├── api-agent/                  # Gemini AI Agent Service
+│   ├── geminiClient.js         # Gemini API wrapper
 │   ├── .env
 │   └── app.js
-│
-├── mcp-server/               # Message Control Protocol Server
-│   ├── commands/            # Command handlers
-│   ├── middleware/          # Request middleware
-│   ├── services/               # services 
+
+├── mcp-server/                 # Message Control Protocol Server
+│   ├── commands/               # Command handlers
+│   ├── middleware/             # Request pre-processing
+│   ├── services/               # Business logic (MCP)
 │   ├── .env
 │   └── app.js
-│
-└── package.json             # Root package.json for shared scripts
 
-### 🎙️ Speech Prompt Flow
-
-1. User speaks through microphone.
-2. `speechToText.js` uses browser's Web Speech API or `speech-recognition` to transcribe.
-3. Transcribed text is passed to MCP as a prompt.
-4. MCP parses the prompt, extracts command, and forwards to backend API via `leadService`.
+├── package.json                # Root shared scripts
